@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.lib.mapper.BookMapper">
+
+    <!--
+        库表是下划线命名，实体是驼峰命名。虽然开了自动映射，
+        这里还是显式写一遍：将来某列改了名字，报错会直接指到这一行，
+        比只看到一片 null 好找得多。
+    -->
+    <resultMap id="bookMap" type="Book">
+        <id     property="id"          column="id"/>
+        <result property="bookName"    column="book_name"/>
+        <result property="author"      column="author"/>
+        <result property="publisher"   column="publisher"/>
+        <result property="category"    column="category"/>
+        <result property="price"       column="price"/>
+        <result property="stock"       column="stock"/>
+        <result property="publishDate" column="publish_date"/>
+        <result property="state"       column="state"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        id, book_name, author, publisher, category, price, stock, publish_date, state
+    </sql>
+
+    <select id="selectAll" resultMap="bookMap">
+        SELECT <include refid="baseColumns"/> FROM book
+    </select>
+
+    <select id="findById" parameterType="int" resultMap="bookMap">
+        SELECT <include refid="baseColumns"/> FROM book WHERE id = #{id}
+    </select>
+
+    <!-- useGeneratedKeys + keyProperty：新增完能把自增号写回实体，
+         少了这两个属性 book.getId() 永远是 null -->
+    <insert id="addBook" parameterType="Book" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO book (book_name, author, publisher, category, price, stock, publish_date, state)
+        VALUES (#{bookName}, #{author}, #{publisher}, #{category}, #{price}, #{stock}, #{publishDate}, #{state})
+    </insert>
+
+    <update id="updateWhole" parameterType="Book">
+        UPDATE book
+        SET book_name = #{bookName}, author = #{author}, publisher = #{publisher},
+            category = #{category}, price = #{price}, stock = #{stock},
+            publish_date = #{publishDate}, state = #{state}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteOne" parameterType="int">
+        DELETE FROM book WHERE id = #{id}
+    </delete>
+
+</mapper>
