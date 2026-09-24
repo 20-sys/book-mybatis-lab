@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!-- 数据库四要素抽到 jdbc.properties，换机器只改那一个文件 -->
+    <properties resource="jdbc.properties"/>
+
+    <settings>
+        <!-- 下划线列名 -> 驼峰属性，不开的话 stock / price 这种单字段没事，
+             publish_date 会变成 null，很容易被当成"查不到数据" -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 日志交给 log4j 输出，方便在控制台看到真正执行的 SQL -->
+        <setting name="logImpl" value="LOG4J"/>
+        <!-- 结果为 null 的字段也回调 setter，避免实体里留着上次的旧值 -->
+        <setting name="callSettersOnNulls" value="true"/>
+    </settings>
+
+    <typeAliases>
+        <!-- 别名之后映射文件里写 Book / BookQuery 就行，不用写全限定名 -->
+        <package name="com.campus.lib.entity"/>
+        <package name="com.campus.lib.query"/>
+    </typeAliases>
+
+    <environments default="dev">
+        <environment id="dev">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <!-- BookMapper.java 和 BookMapper.xml 放在同名的包路径下，一行搞定注册 -->
+        <package name="com.campus.lib.mapper"/>
+    </mappers>
+</configuration>
