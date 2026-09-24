@@ -1,0 +1,16 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+*.iml
+*.ipr
+*.iws
+.idea/
+
+*.log
+logs/
+
+.DS_Store
+Thumbs.db
+
+# 本地数据库口令不要提交
+src/main/resources/jdbc-local.properties
