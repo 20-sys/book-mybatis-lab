@@ -51,4 +51,113 @@
         DELETE FROM book WHERE id = #{id}
     </delete>
 
+    <!--
+        多条件查询。where 标签会自动吃掉紧跟在它后面的第一个 AND，
+        所以每个条件都放心以 AND 开头，不用判断"是不是第一个条件"。
+    -->
+    <select id="selectByCondition" parameterType="BookQuery" resultMap="bookMap">
+        SELECT <include refid="baseColumns"/> FROM book
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (book_name LIKE CONCAT('%', #{keyword}, '%')
+                OR author LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="state != null">
+                AND state = #{state}
+            </if>
+            <if test="minPrice != null">
+                AND price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
+        </where>
+        <include refid="orderBlock"/>
+    </select>
+
+    <!--
+        排序字段这里刻意不写 ORDER BY ${orderColumn}。
+        ${} 是直接字符串拼进 SQL 的，前端只要传 "id; drop table book" 就出事了。
+        改成 choose 白名单，只认 price 和 stock 两个值，其它一律走默认排序。
+    -->
+    <sql id="orderBlock">
+        <choose>
+            <when test="orderColumn == 'price'">
+                ORDER BY price
+                <choose>
+                    <when test="desc">DESC</when>
+                    <otherwise>ASC</otherwise>
+                </choose>
+            </when>
+            <when test="orderColumn == 'stock'">
+                ORDER BY stock
+                <choose>
+                    <when test="desc">DESC</when>
+                    <otherwise>ASC</otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                ORDER BY id ASC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <!-- set 标签会把最后一个多余逗号抹掉，所以每个 if 后面都可以带逗号 -->
+    <update id="updateSelective" parameterType="Book">
+        UPDATE book
+        <set>
+            <if test="bookName != null and bookName != ''">book_name = #{bookName},</if>
+            <if test="author != null and author != ''">author = #{author},</if>
+            <if test="publisher != null and publisher != ''">publisher = #{publisher},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="publishDate != null">publish_date = #{publishDate},</if>
+            <if test="state != null">state = #{state},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteBatch">
+        DELETE FROM book WHERE id IN
+        <foreach collection="ids" item="bid" open="(" separator="," close=")">
+            #{bid}
+        </foreach>
+    </delete>
+
+    <!-- 批量插入靠一条 INSERT + 多个 VALUES 括号，比循环调 addBook 少几百次网络往返。
+         注意这里不配 keyProperty：多行插入时各驱动返回主键的行为不一致，
+         要主键就插入后按业务字段查回来。 -->
+    <insert id="insertBatch">
+        INSERT INTO book (book_name, author, publisher, category, price, stock, publish_date, state)
+        VALUES
+        <foreach collection="list" item="b" separator=",">
+            (#{b.bookName}, #{b.author}, #{b.publisher}, #{b.category},
+             #{b.price}, #{b.stock}, #{b.publishDate}, #{b.state})
+        </foreach>
+    </insert>
+
+    <!-- choose 是从上往下命中即停，只有一个分支会进 SQL，这点和多个 if 叠加不一样 -->
+    <select id="selectByBranch" parameterType="BookQuery" resultMap="bookMap">
+        SELECT <include refid="baseColumns"/> FROM book
+        <choose>
+            <when test="keyword != null and keyword != ''">
+                WHERE book_name = #{keyword}
+            </when>
+            <when test="category != null and category != ''">
+                WHERE category = #{category}
+            </when>
+            <otherwise>
+                WHERE state = 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="countOnShelf" resultType="int">
+        SELECT COUNT(1) FROM book WHERE state = 1
+    </select>
+
 </mapper>
