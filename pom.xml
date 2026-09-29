@@ -15,11 +15,19 @@
     </properties>
 
     <dependencies>
-        <!-- 任务一、二的持久层框架，先用原生 MyBatis 把流程走通 -->
+        <!--
+            MyBatis-Plus 的 jar 里已经带了 mybatis 核心包，
+            所以这里绝对不要再单独写一个 org.mybatis:mybatis，
+            两个版本叠在一起就是 NoSuchMethodError 的常见来源。
+
+            版本用 3.5.5 不是随便挑的：3.5.3.1 的 GenericTypeUtils 默认调用
+            org.springframework.core.GenericTypeResolver，不引 spring-core 的话
+            一启动就 NoClassDefFoundError；3.5.5 已经改回不依赖 Spring 的写法。
+        -->
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.5.13</version>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus</artifactId>
+            <version>3.5.5</version>
         </dependency>
 
         <dependency>

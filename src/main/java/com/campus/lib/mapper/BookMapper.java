@@ -1,5 +1,6 @@
 package com.campus.lib.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.campus.lib.entity.Book;
 import com.campus.lib.query.BookQuery;
 import org.apache.ibatis.annotations.Param;
@@ -7,9 +8,15 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 藏书持久层。方法只声明，实现由 MyBatis 动态代理生成。
+ * 藏书持久层。
+ * <p>
+ * 说明一下这里为什么方法名都不用 selectById / insert / updateById 这些：
+ * 继承 BaseMapper 之后，MP 会往这个接口里注入同名的通用方法，
+ * 一旦和 XML 里的 statement id 撞名，启动就会报
+ * "Mapped Statements collection already contains value for ..."。
+ * 所以自定义的写操作统一避开通用方法名。
  */
-public interface BookMapper {
+public interface BookMapper extends BaseMapper<Book> {
 
     /** 查全部 */
     List<Book> selectAll();
